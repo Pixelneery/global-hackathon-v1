@@ -1,0 +1,7 @@
+project_id = "jjowaxcwlpkcjqnqrxje"
+
+[functions.chat]
+verify_jwt = false
+
+[functions.synthesize]
+verify_jwt = false
