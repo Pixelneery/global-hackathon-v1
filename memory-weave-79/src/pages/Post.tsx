@@ -6,7 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, Download, Share2, Edit2, Save, X } from "lucide-react";
+import { ArrowLeft, Download, Share2, Edit2, Save, X, Users, UserPlus } from "lucide-react";
+import { ShareDialog } from "@/components/ShareDialog";
+import { InviteMemberDialog } from "@/components/InviteMemberDialog";
+import { MembershipsDialog } from "@/components/MembershipsDialog";
 
 interface Post {
   id: string;
@@ -28,7 +31,10 @@ const Post = () => {
   const [editing, setEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState("");
   const [editedPost, setEditedPost] = useState("");
-  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [storytellerId, setStorytellerId] = useState<string | null>(null);
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const [showMembersDialog, setShowMembersDialog] = useState(false);
 
   useEffect(() => {
     loadPost();
@@ -37,21 +43,24 @@ const Post = () => {
   const loadPost = async () => {
     if (!postId) return;
 
-    const { data, error } = await supabase
+    const { data: postData, error: postError } = await supabase
       .from('posts')
-      .select('*')
+      .select('*, story:stories(storyteller_id)')
       .eq('id', postId)
       .single();
 
-    if (error) {
-      console.error('Error loading post:', error);
+    if (postError) {
+      console.error('Error loading post:', postError);
       toast.error('Failed to load post');
       return;
     }
 
-    setPost(data);
-    setEditedTitle(data.title);
-    setEditedPost(data.post_text);
+    setPost(postData);
+    setEditedTitle(postData.title);
+    setEditedPost(postData.post_text);
+    if (postData.story) {
+      setStorytellerId((postData.story as any).storyteller_id);
+    }
     setLoading(false);
   };
 
@@ -77,26 +86,6 @@ const Post = () => {
     toast.success('Changes saved!');
   };
 
-  const createShareLink = async () => {
-    if (!postId) return;
-
-    const { data, error } = await supabase
-      .from('shares')
-      .insert({ post_id: postId })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error creating share link:', error);
-      toast.error('Failed to create share link');
-      return;
-    }
-
-    const url = `${window.location.origin}/share/${data.token}`;
-    setShareUrl(url);
-    navigator.clipboard.writeText(url);
-    toast.success('Share link copied to clipboard!');
-  };
 
   const exportPDF = () => {
     if (!post) return;
@@ -179,7 +168,19 @@ const Post = () => {
                   <Download className="h-4 w-4" />
                   Download
                 </Button>
-                <Button onClick={createShareLink} size="sm" className="gap-2">
+                {storytellerId && (
+                  <>
+                    <Button onClick={() => setShowMembersDialog(true)} variant="outline" size="sm" className="gap-2">
+                      <Users className="h-4 w-4" />
+                      Members
+                    </Button>
+                    <Button onClick={() => setShowInviteDialog(true)} variant="outline" size="sm" className="gap-2">
+                      <UserPlus className="h-4 w-4" />
+                      Invite
+                    </Button>
+                  </>
+                )}
+                <Button onClick={() => setShowShareDialog(true)} size="sm" className="gap-2">
                   <Share2 className="h-4 w-4" />
                   Share
                 </Button>
@@ -249,27 +250,31 @@ const Post = () => {
           )}
         </article>
 
-        {shareUrl && (
-          <Card className="mt-8 p-6 bg-accent/10">
-            <h3 className="text-lg font-semibold mb-2">Share this memory</h3>
-            <p className="text-muted-foreground mb-3">
-              Anyone with this link can view this post
-            </p>
-            <div className="flex gap-2">
-              <Input value={shareUrl} readOnly className="flex-1" />
-              <Button
-                onClick={() => {
-                  navigator.clipboard.writeText(shareUrl);
-                  toast.success('Link copied!');
-                }}
-                variant="outline"
-              >
-                Copy
-              </Button>
-            </div>
-          </Card>
-        )}
       </main>
+
+      {postId && (
+        <>
+          <ShareDialog 
+            open={showShareDialog} 
+            onOpenChange={setShowShareDialog} 
+            postId={postId} 
+          />
+          {storytellerId && (
+            <>
+              <InviteMemberDialog
+                open={showInviteDialog}
+                onOpenChange={setShowInviteDialog}
+                storytellerId={storytellerId}
+              />
+              <MembershipsDialog
+                open={showMembersDialog}
+                onOpenChange={setShowMembersDialog}
+                storytellerId={storytellerId}
+              />
+            </>
+          )}
+        </>
+      )}
     </div>
   );
 };

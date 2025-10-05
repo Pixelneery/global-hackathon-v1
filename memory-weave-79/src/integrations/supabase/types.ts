@@ -14,6 +14,86 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          target_id: string | null
+          target_type: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          target_id?: string | null
+          target_type: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          target_id?: string | null
+          target_type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      memberships: {
+        Row: {
+          accepted_at: string | null
+          id: string
+          invited_at: string
+          invited_by: string | null
+          revoked_at: string | null
+          role: Database["public"]["Enums"]["member_role"]
+          storyteller_id: string
+          token_expires_at: string | null
+          token_hash: string | null
+          user_email: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          id?: string
+          invited_at?: string
+          invited_by?: string | null
+          revoked_at?: string | null
+          role: Database["public"]["Enums"]["member_role"]
+          storyteller_id: string
+          token_expires_at?: string | null
+          token_hash?: string | null
+          user_email: string
+        }
+        Update: {
+          accepted_at?: string | null
+          id?: string
+          invited_at?: string
+          invited_by?: string | null
+          revoked_at?: string | null
+          role?: Database["public"]["Enums"]["member_role"]
+          storyteller_id?: string
+          token_expires_at?: string | null
+          token_hash?: string | null
+          user_email?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memberships_storyteller_id_fkey"
+            columns: ["storyteller_id"]
+            isOneToOne: false
+            referencedRelation: "storytellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
@@ -99,20 +179,29 @@ export type Database = {
       shares: {
         Row: {
           created_at: string
+          created_by_user_id: string | null
+          expires_at: string | null
           id: string
           post_id: string
+          revoked_at: string | null
           token: string
         }
         Insert: {
           created_at?: string
+          created_by_user_id?: string | null
+          expires_at?: string | null
           id?: string
           post_id: string
+          revoked_at?: string | null
           token?: string
         }
         Update: {
           created_at?: string
+          created_by_user_id?: string | null
+          expires_at?: string | null
           id?: string
           post_id?: string
+          revoked_at?: string | null
           token?: string
         }
         Relationships: [
@@ -162,18 +251,21 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          owner_id: string | null
           photo_url: string | null
         }
         Insert: {
           created_at?: string
           id?: string
           name: string
+          owner_id?: string | null
           photo_url?: string | null
         }
         Update: {
           created_at?: string
           id?: string
           name?: string
+          owner_id?: string | null
           photo_url?: string | null
         }
         Relationships: []
@@ -186,7 +278,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      member_role: "owner" | "editor" | "viewer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -313,6 +405,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      member_role: ["owner", "editor", "viewer"],
+    },
   },
 } as const

@@ -5,3 +5,12 @@ verify_jwt = false
 
 [functions.synthesize]
 verify_jwt = false
+
+[functions.invite]
+verify_jwt = false
+
+[functions.accept-invite]
+verify_jwt = false
+
+[functions.revoke-share]
+verify_jwt = false

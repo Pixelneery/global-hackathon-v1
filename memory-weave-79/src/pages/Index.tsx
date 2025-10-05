@@ -85,7 +85,7 @@ const Index = () => {
         <div className="container mx-auto px-4 py-8 text-center">
           <div className="flex items-center justify-center gap-3 mb-3">
             <Heart className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl md:text-4xl mb-0">Memory Keeper</h1>
+            <h1 className="text-3xl md:text-4xl mb-0">StoryNest</h1>
           </div>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Preserve your precious memories through guided conversations. 

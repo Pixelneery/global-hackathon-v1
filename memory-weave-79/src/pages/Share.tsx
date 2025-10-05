@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface Post {
   id: string;
@@ -19,39 +20,40 @@ const Share = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadSharedPost();
+    loadShare();
   }, [token]);
 
-  const loadSharedPost = async () => {
+  const loadShare = async () => {
     if (!token) return;
 
-    // Get post ID from share token
     const { data: shareData, error: shareError } = await supabase
       .from('shares')
-      .select('post_id')
+      .select('*, post:posts(*)')
       .eq('token', token)
-      .single();
+      .maybeSingle();
 
     if (shareError || !shareData) {
       console.error('Error loading share:', shareError);
+      toast.error('Invalid share link');
       setLoading(false);
       return;
     }
 
-    // Load post
-    const { data: postData, error: postError } = await supabase
-      .from('posts')
-      .select('*')
-      .eq('id', shareData.post_id)
-      .single();
-
-    if (postError) {
-      console.error('Error loading post:', postError);
+    // Check if share is revoked
+    if (shareData.revoked_at) {
+      toast.error('This share link has been revoked');
       setLoading(false);
       return;
     }
 
-    setPost(postData);
+    // Check if share has expired
+    if (shareData.expires_at && new Date(shareData.expires_at) < new Date()) {
+      toast.error('This share link has expired');
+      setLoading(false);
+      return;
+    }
+
+    setPost(shareData.post);
     setLoading(false);
   };
 
@@ -80,7 +82,7 @@ const Share = () => {
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
         <div className="container mx-auto px-4 py-6 text-center">
-          <h1 className="text-2xl font-semibold mb-0">Memory Keeper</h1>
+          <h1 className="text-2xl font-semibold mb-0">StoryNest</h1>
           <p className="text-muted-foreground text-sm mt-2">A shared memory</p>
         </div>
       </header>
@@ -133,7 +135,7 @@ const Share = () => {
           <p className="text-muted-foreground">
             Create your own memory posts at{' '}
             <a href="/" className="text-primary hover:underline font-medium">
-              Memory Keeper
+              StoryNest
             </a>
           </p>
         </Card>

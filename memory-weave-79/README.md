@@ -1,14 +1,16 @@
-# Memory Keeper for Grandparents
+# StoryNest for Grandparents
 
-A beautiful web application that helps capture and preserve family memories through guided AI conversations. Turn life stories into shareable blog posts.
+A beautiful web application that helps capture and preserve family memories through guided AI conversations. Turn life stories into shareable blog posts with secure family permissions.
 
 ## 🎯 Features
 
 - **Guided Interview**: Empathetic AI interviewer helps storytellers share memories
 - **Story Synthesis**: Automatically creates polished 300-450 word blog posts from conversations
-- **Edit & Share**: Edit posts, download as text files, and generate private share links
+- **Family Permissions**: Invite family members with role-based access (owner, editor, viewer)
+- **Secure Sharing**: Generate expiring, revocable share links with audit logging
+- **Edit & Export**: Edit posts, download as text files
 - **Memory Gallery**: View all captured memories in one place
-- **Real-time Chat**: Live conversation updates using Supabase Realtime
+- **Real-time Chat**: Live conversation updates using Lovable Cloud Realtime
 
 ## 🛠️ Tech Stack
 
@@ -43,11 +45,13 @@ A beautiful web application that helps capture and preserve family memories thro
 
 ## 📊 Database Schema
 
-- `storytellers` - Profile information
+- `storytellers` - Profile information with owner tracking
 - `stories` - Conversation sessions
 - `messages` - Full transcripts with timestamps
 - `posts` - Synthesized blog posts
-- `shares` - Private share tokens
+- `shares` - Secure, expiring share tokens with revocation
+- `memberships` - Family member invitations with role-based permissions
+- `audit_logs` - Security audit trail for sensitive actions
 
 ## 🎨 Design Philosophy
 
@@ -58,10 +62,13 @@ A beautiful web application that helps capture and preserve family memories thro
 
 ## 🔒 Privacy & Security
 
-- All data private by default
-- Share only via generated private links
-- Delete functionality removes all data
-- Public RLS policies (can be tightened for auth)
+- **Role-Based Access**: Owner, editor, and viewer roles for family members
+- **Secure Tokens**: All share and invite tokens are hashed (SHA-256) before storage
+- **Expiring Links**: Share links expire automatically (configurable 1-90 days)
+- **Revocable Access**: Instantly revoke share links and memberships
+- **Audit Logging**: Track all sensitive actions (invites, shares, revocations)
+- **Token Security**: Single-use invite tokens with constant-time comparison
+- **Data Privacy**: All data private by default, share only via secure links
 
 ## 🎭 Demo Flow (2 minutes)
 
@@ -96,10 +103,19 @@ All automatically configured via Lovable Cloud:
 ## 📦 Edge Functions
 
 ### `/chat`
-Handles conversation flow with AI interviewer. Stores messages and returns empathetic responses.
+Handles conversation flow with AI interviewer. Stores messages and returns empathetic responses using Lovable AI (Gemini 2.5 Flash).
 
 ### `/synthesize`
 Processes full transcript and generates structured blog post using AI tool calling for JSON output.
+
+### `/invite`
+Creates secure, hashed invite tokens for family members. Sends email invitations with role-based permissions (7-day expiry).
+
+### `/accept-invite`
+Validates invite tokens, marks memberships as accepted, and creates audit log entries.
+
+### `/revoke-share`
+Revokes share links immediately and logs the action for security audit.
 
 ## 🎨 Color Palette
 
@@ -121,12 +137,14 @@ Built on Lovable - automatically deployed on save. Backend functions deploy auto
 
 ## 🎓 Next Features
 
-- Audio recording + transcription
-- Photo attachments
-- PDF export with styling
-- Family accounts with auth
-- Email notifications
-- Print-ready formats
+- **Email Notifications**: Send email invites via Resend/SendGrid integration
+- **Audio Recording**: Voice recording with transcription
+- **Photo Attachments**: Add images to memories
+- **PDF Export**: Beautiful PDF export with styling
+- **Authentication**: Full auth system with profiles
+- **Rate Limiting**: Prevent abuse of AI endpoints
+- **CSP Headers**: Content Security Policy implementation
+- **Magic Link Auth**: Passwordless login for invited members
 
 ---
 
