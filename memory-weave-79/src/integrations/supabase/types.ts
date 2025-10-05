@@ -251,31 +251,78 @@ export type Database = {
           created_at: string
           id: string
           name: string
-          owner_id: string | null
+          owner_id: string
           photo_url: string | null
         }
         Insert: {
           created_at?: string
           id?: string
           name: string
-          owner_id?: string | null
+          owner_id?: string
           photo_url?: string | null
         }
         Update: {
           created_at?: string
           id?: string
           name?: string
-          owner_id?: string | null
+          owner_id?: string
           photo_url?: string | null
         }
         Relationships: []
       }
     }
     Views: {
-      [_ in never]: never
+      memberships_safe: {
+        Row: {
+          accepted_at: string | null
+          id: string | null
+          invited_at: string | null
+          invited_by: string | null
+          revoked_at: string | null
+          role: Database["public"]["Enums"]["member_role"] | null
+          storyteller_id: string | null
+          user_email: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          id?: string | null
+          invited_at?: string | null
+          invited_by?: string | null
+          revoked_at?: string | null
+          role?: Database["public"]["Enums"]["member_role"] | null
+          storyteller_id?: string | null
+          user_email?: never
+        }
+        Update: {
+          accepted_at?: string | null
+          id?: string | null
+          invited_at?: string | null
+          invited_by?: string | null
+          revoked_at?: string | null
+          role?: Database["public"]["Enums"]["member_role"] | null
+          storyteller_id?: string | null
+          user_email?: never
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memberships_storyteller_id_fkey"
+            columns: ["storyteller_id"]
+            isOneToOne: false
+            referencedRelation: "storytellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      [_ in never]: never
+      can_access_storyteller: {
+        Args: { _storyteller_id: string; _user_id: string }
+        Returns: boolean
+      }
+      get_storyteller_access_level: {
+        Args: { _storyteller_id: string; _user_id: string }
+        Returns: string
+      }
     }
     Enums: {
       member_role: "owner" | "editor" | "viewer"

@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.revoke-share]
 verify_jwt = false
+
+[functions.get-shared-post]
+verify_jwt = false

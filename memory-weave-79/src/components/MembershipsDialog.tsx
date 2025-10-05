@@ -33,9 +33,10 @@ export function MembershipsDialog({ open, onOpenChange, storytellerId }: Members
 
   const loadMemberships = async () => {
     setLoading(true);
+    // Query memberships table but exclude sensitive token_hash field
     const { data, error } = await supabase
       .from('memberships')
-      .select('*')
+      .select('id, user_email, role, invited_at, accepted_at, revoked_at, invited_by, storyteller_id')
       .eq('storyteller_id', storytellerId)
       .order('invited_at', { ascending: false });
 

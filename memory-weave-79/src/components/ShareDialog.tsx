@@ -27,11 +27,20 @@ export function ShareDialog({ open, onOpenChange, postId }: ShareDialogProps) {
       const expiryDays = parseInt(expiry);
       const expiresAt = new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000);
 
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error('You must be logged in to create share links');
+        return;
+      }
+
       const { data, error } = await supabase
         .from('shares')
         .insert({ 
           post_id: postId,
-          expires_at: expiresAt.toISOString()
+          expires_at: expiresAt.toISOString(),
+          created_by_user_id: user.id
         })
         .select()
         .single();

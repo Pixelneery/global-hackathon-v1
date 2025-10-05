@@ -26,35 +26,31 @@ const Share = () => {
   const loadShare = async () => {
     if (!token) return;
 
-    const { data: shareData, error: shareError } = await supabase
-      .from('shares')
-      .select('*, post:posts(*)')
-      .eq('token', token)
-      .maybeSingle();
+    try {
+      const { data, error } = await supabase.functions.invoke('get-shared-post', {
+        body: { token }
+      });
 
-    if (shareError || !shareData) {
-      console.error('Error loading share:', shareError);
-      toast.error('Invalid share link');
+      if (error) {
+        console.error('Error loading share:', error);
+        toast.error('Invalid share link');
+        setLoading(false);
+        return;
+      }
+
+      if (data.error) {
+        toast.error(data.error);
+        setLoading(false);
+        return;
+      }
+
+      setPost(data.post);
       setLoading(false);
-      return;
-    }
-
-    // Check if share is revoked
-    if (shareData.revoked_at) {
-      toast.error('This share link has been revoked');
+    } catch (error) {
+      console.error('Error loading share:', error);
+      toast.error('Failed to load shared post');
       setLoading(false);
-      return;
     }
-
-    // Check if share has expired
-    if (shareData.expires_at && new Date(shareData.expires_at) < new Date()) {
-      toast.error('This share link has expired');
-      setLoading(false);
-      return;
-    }
-
-    setPost(shareData.post);
-    setLoading(false);
   };
 
   if (loading) {

@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, BookOpen, Heart } from "lucide-react";
+import { Plus, BookOpen, Heart, LogOut } from "lucide-react";
 
 interface Story {
   id: string;
@@ -48,10 +48,17 @@ const Index = () => {
     setLoading(true);
 
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('You must be logged in');
+        return;
+      }
+
       // Create storyteller
       const { data: storyteller, error: storytellerError } = await supabase
         .from('storytellers')
-        .insert({ name: name.trim() })
+        .insert({ name: name.trim(), owner_id: user.id })
         .select()
         .single();
 
@@ -79,15 +86,29 @@ const Index = () => {
     }
   };
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    toast.success('Signed out successfully');
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-8 text-center">
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <Heart className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl md:text-4xl mb-0">StoryNest</h1>
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex-1" />
+            <div className="flex items-center gap-3">
+              <Heart className="h-8 w-8 text-primary" />
+              <h1 className="text-3xl md:text-4xl mb-0">StoryNest</h1>
+            </div>
+            <div className="flex-1 flex justify-end">
+              <Button variant="ghost" size="sm" onClick={handleSignOut} className="gap-2">
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </Button>
+            </div>
           </div>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-center">
             Preserve your precious memories through guided conversations. 
             Share your stories with family for generations to come.
           </p>
